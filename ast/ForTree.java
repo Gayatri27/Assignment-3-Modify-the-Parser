@@ -2,13 +2,12 @@ package ast;
 
 import visitor.*;
 
-public class IfTree extends AST {
+public class ForTree extends AST {
 
-    public IfTree() {
+    public ForTree() {
     }
 
     public Object accept(ASTVisitor v) {
-        return v.visitIfTree(this);
+        return v.visitForTree(this);
     }
-
 }

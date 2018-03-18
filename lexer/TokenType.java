@@ -36,5 +36,15 @@ public class TokenType {
      tokens.put(Tokens.Multiply, Symbol.symbol("*",Tokens.Multiply));
      tokens.put(Tokens.Divide, Symbol.symbol("/",Tokens.Divide));
      tokens.put(Tokens.Comment, Symbol.symbol("//",Tokens.Comment));
+     tokens.put(Tokens.Greater, Symbol.symbol(">",Tokens.Greater));
+     tokens.put(Tokens.GreaterEqual, Symbol.symbol(">=",Tokens.GreaterEqual));
+     tokens.put(Tokens.SortaClose, Symbol.symbol("<>",Tokens.SortaClose));
+     tokens.put(Tokens.NumberLit, Symbol.symbol("<d+.d+>",Tokens.NumberLit));
+     tokens.put(Tokens.ScientificLit, Symbol.symbol("<d.dd?[Ee][+-]d+>",Tokens.ScientificLit));
+     tokens.put(Tokens.Number, Symbol.symbol("number",Tokens.Number));
+     tokens.put(Tokens.Scientific, Symbol.symbol("scientific",Tokens.Scientific));
+     tokens.put(Tokens.For, Symbol.symbol("for",Tokens.For));
+     tokens.put(Tokens.Unless, Symbol.symbol("unless",Tokens.Unless));
+     tokens.put(Tokens.Semicolon, Symbol.symbol(";",Tokens.Semicolon));
    }
 }

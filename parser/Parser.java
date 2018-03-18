@@ -57,7 +57,9 @@ public class Parser {
     private Token currentToken;
     private Lexer lex;
     private EnumSet<Tokens> relationalOps
-            = EnumSet.of(Tokens.Equal, Tokens.NotEqual, Tokens.Less, Tokens.LessEqual);
+            = EnumSet.of(Tokens.Equal, Tokens.NotEqual, Tokens.Less,
+            Tokens.LessEqual, Tokens.Greater, Tokens.GreaterEqual,
+            Tokens.SortaClose);
     private EnumSet<Tokens> addingOps
             = EnumSet.of(Tokens.Plus, Tokens.Minus, Tokens.Or);
     private EnumSet<Tokens> multiplyingOps
@@ -108,7 +110,7 @@ public class Parser {
      * @exception SyntaxError - thrown for any syntax error
      */
     public AST rProgram() throws SyntaxError {
-        // note that rProgram actually returns a ProgramTree; we use the 
+        // note that rProgram actually returns a ProgramTree; we use the
         // principle of substitutability to indicate it returns an AST
         AST t = new ProgramTree();
         expect(Tokens.Program);
@@ -139,8 +141,39 @@ public class Parser {
         return t;
     }
 
+    /**
+     * <
+     * pre>
+     * block -> '(' d* s* ')' ==> block
+     * </pre>
+     *
+     * @return ehead block tree
+     * @exception SyntaxError - thrown for any syntax error e.g. an expected
+     * left brace isn't found
+     */
+    public AST eheadBlock() throws SyntaxError {
+        expect(Tokens.LeftParen);
+        AST ehead = new EheadTree();
+        AST t = rName();
+        t = (new AssignTree()).addKid(t);
+        expect(Tokens.Assign);
+        t.addKid(rExpr());
+        ehead.addKid(t);
+        expect(Tokens.Semicolon);
+        ehead.addKid(rExpr());
+        expect(Tokens.Semicolon);
+        t = rName();
+        t = (new AssignTree()).addKid(t);
+        expect(Tokens.Assign);
+        t.addKid(rExpr());
+        ehead.addKid(t);
+        expect(Tokens.RightParen);
+        return ehead;
+    }
+
     boolean startingDecl() {
-        if (isNextTok(Tokens.Int) || isNextTok(Tokens.BOOLean)) {
+        if (isNextTok(Tokens.Int) || isNextTok(Tokens.BOOLean) ||
+              isNextTok(Tokens.Number) || isNextTok(Tokens.Scientific)) {
             return true;
         }
         return false;
@@ -148,7 +181,8 @@ public class Parser {
 
     boolean startingStatement() {
         if (isNextTok(Tokens.If) || isNextTok(Tokens.While) || isNextTok(Tokens.Return)
-                || isNextTok(Tokens.LeftBrace) || isNextTok(Tokens.Identifier)) {
+                || isNextTok(Tokens.LeftBrace) || isNextTok(Tokens.Identifier) ||
+                isNextTok(Tokens.Unless) || isNextTok(Tokens.For)) {
             return true;
         }
         return false;
@@ -191,6 +225,12 @@ public class Parser {
         if (isNextTok(Tokens.Int)) {
             t = new IntTypeTree();
             scan();
+        } else if(isNextTok(Tokens.Number)) {
+            t = new NumberTypeTree();
+            scan();
+        } else if(isNextTok(Tokens.Scientific)) {
+          t = new ScientificTypeTree();
+          scan();
         } else {
             expect(Tokens.BOOLean);
             t = new BoolTypeTree();
@@ -237,14 +277,35 @@ public class Parser {
      */
     public AST rStatement() throws SyntaxError {
         AST t;
+        if (isNextTok(Tokens.For)) {
+          scan();
+          t = new ForTree();
+          t.addKid(eheadBlock());
+          t.addKid(rBlock());
+          return t;
+        }
+        if (isNextTok(Tokens.Unless)) {
+            scan();
+            t = new UnlessTree();
+            t.addKid(rExpr());
+            expect(Tokens.Then);
+            t.addKid(rBlock());
+            if (isNextTok(Tokens.Else)) {
+              expect(Tokens.Else);
+              t.addKid(rBlock());
+            }
+            return t;
+        }
         if (isNextTok(Tokens.If)) {
             scan();
             t = new IfTree();
             t.addKid(rExpr());
             expect(Tokens.Then);
             t.addKid(rBlock());
-            expect(Tokens.Else);
-            t.addKid(rBlock());
+            if (isNextTok(Tokens.Else)) {
+              expect(Tokens.Else);
+              t.addKid(rBlock());
+            }
             return t;
         }
         if (isNextTok(Tokens.While)) {
@@ -385,7 +446,8 @@ public class Parser {
      */
     public AST rName() throws SyntaxError {
         AST t;
-        if (isNextTok(Tokens.Identifier)) {
+        if (isNextTok(Tokens.Identifier) || isNextTok(Tokens.NumberLit) ||
+                isNextTok(Tokens.ScientificLit)) {
             t = new IdTree(currentToken);
             scan();
             return t;
@@ -443,9 +505,6 @@ public class Parser {
 
     private void scan() {
         currentToken = lex.nextToken();
-        if (currentToken != null) {
-            currentToken.print();   // debug printout
-        }
         return;
     }
 }

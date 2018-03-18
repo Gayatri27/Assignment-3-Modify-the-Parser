@@ -26,3 +26,13 @@ And &
 Multiply *
 Divide /
 Comment //
+Greater >
+GreaterEqual >=
+SortaClose <>
+NumberLit <d+.d+>
+ScientificLit <d.dd?[Ee][+-]d+>
+Number number
+Scientific scientific
+For for
+Unless unless
+Semicolon ;
