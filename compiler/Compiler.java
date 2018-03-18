@@ -21,67 +21,67 @@ import javax.swing.ImageIcon;
 */
 public class Compiler {
 
-/**
- * The Compiler class reads and compiles a source program
-*/
+	/**
+	 * The Compiler class reads and compiles a source program
+	 */
 
 	String sourceFile;
 
-    public Compiler(String sourceFile) {
+    public Compiler( String sourceFile ) {
     	this.sourceFile = sourceFile;
     }
 
     void compileProgram() {
+	try {
+			Parser parser = new Parser( sourceFile );
+			AST ast = parser.execute();
+
+			System.out.println( "---------------AST-------------" );
+			PrintVisitor printVisitor = new PrintVisitor();
+			ast.accept( printVisitor );
+
+			CountVisitor counter = new CountVisitor();
+			ast.accept( counter );
+
+			DrawVisitor visitor = new DrawVisitor( counter.getCount() );
+			ast.accept( visitor );
+
 			try {
-					Parser parser = new Parser(sourceFile);
-					AST ast = parser.execute();
+				File imagefile = new File( sourceFile + ".png" );
+				ImageIO.write( visitor.getImage(), "png", imagefile );
+			} catch( Exception e ) {
+				System.out.println( "Error in saving image: " + e.getMessage() );
+			}
 
-					System.out.println( "---------------AST-------------" );
-					PrintVisitor printVisitor = new PrintVisitor();
-					ast.accept( printVisitor );
+			final JFrame f = new JFrame();
+			f.addWindowListener( new WindowAdapter() {
+				@Override
+				public void windowClosing(WindowEvent e) {
+					f.dispose();
+					System.exit( 0 );
+				}
+			});
 
-					CountVisitor counter = new CountVisitor();
-					ast.accept( counter );
-
-					DrawVisitor visitor = new DrawVisitor( counter.getCount() );
-					ast.accept( visitor );
-
-					try {
-						File imagefile = new File( sourceFile + ".png" );
-						ImageIO.write( visitor.getImage(), "png", imagefile );
-					} catch( Exception e ) {
-						System.out.println( "Error in saving image: " + e.getMessage() );
-					}
-
-					final JFrame f = new JFrame();
-					f.addWindowListener( new WindowAdapter() {
-						@Override
-						public void windowClosing(WindowEvent e) {
-							f.dispose();
-							System.exit( 0 );
-						}
-					});
-
-					JLabel imagelabel = new JLabel( new ImageIcon( visitor.getImage() ));
-					f.add( "Center", imagelabel );
-					f.pack();
-					f.setSize(
-						new Dimension(
-							visitor.getImage().getWidth() + 30,
-							visitor.getImage().getHeight() + 40
-						)
-					);
-					f.setVisible( true );
-					f.setResizable( false );
-					f.repaint();
-				} catch( Exception e ) {
-					System.out.println( "********exception*******" + e.toString() );
-				};
+			JLabel imagelabel = new JLabel( new ImageIcon( visitor.getImage() ));
+			f.add( "Center", imagelabel );
+			f.pack();
+			f.setSize(
+				new Dimension(
+					visitor.getImage().getWidth() + 30,
+					visitor.getImage().getHeight() + 40
+				)
+			);
+			f.setVisible( true );
+			f.setResizable( false );
+			f.repaint();
+		} catch( Exception e ) {
+			System.out.println( "********exception*******" + e.toString() );
+		};
     }
 
-    public static void main(String args[]) {
-        if (args.length == 0) {
-            System.out.println("***Incorrect usage, try: java compiler.Compiler <file>");
+    public static void main( String args[] ) {
+        if ( args.length == 0 ) {
+            System.out.println( "***Incorrect usage, try: java compiler.Compiler <file>" );
             System.exit(1);
         }
         (new Compiler(args[0])).compileProgram();
