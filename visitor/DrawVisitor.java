@@ -61,7 +61,9 @@ public class DrawVisitor extends ASTVisitor {
     int x = width / 2 + progress[ depth ] * hstep - nCount[ depth ] * hstep / 2;
     int y = depth * vstep;
 
-    g2.setColor( Color.black );
+    g2.setColor( new Color(174, 214, 241) );
+    g2.fillOval( x, y, nodew, nodeh );
+    g2.setColor( Color.BLACK );
     g2.drawOval( x, y, nodew, nodeh );
     g2.setColor( Color.BLACK );
     g2.drawString( s, x + 10, y + 2 * nodeh / 3 );
